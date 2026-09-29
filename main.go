@@ -72,8 +72,12 @@ func wsHandler(c *gin.Context) {
 }
 
 func main() {
-	// 1. Inisialisasi Koneksi Database PostgreSQL
-	dsn := "host=localhost user=postgres password=ikan123qw dbname=pos_subur_jaya port=5432 sslmode=disable TimeZone=Asia/Jakarta"
+dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		// Fallback ke lokal jika dijalankan di komputermu
+		dsn = "host=localhost user=postgres password=ikan123qw dbname=pos_subur_jaya port=5432 sslmode=disable TimeZone=Asia/Jakarta"
+	}
+	
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -113,7 +117,8 @@ func main() {
 	// 3. Konfigurasi Router (Gin) & CORS
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"},
+		// Gunakan AllowOriginFunc agar semua koneksi diizinkan (aman untuk fase latihan/development)
+		AllowOriginFunc:  func(origin string) bool { return true },
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		// 👇 Terdapat penambahan "Accept" di sini agar file Excel diizinkan masuk
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
