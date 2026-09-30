@@ -73,6 +73,7 @@ type Product struct {
 	ID           int            `gorm:"primaryKey;autoIncrement" json:"id"`
 	Name         string         `gorm:"type:varchar(100);index;not null" json:"name"`
 	Unit         string         `gorm:"type:varchar(20)" json:"unit"`
+	BranchStocks []BranchStock `json:"branch_stocks" gorm:"foreignKey:ProductID"`
 	PriceGeneral float64        `gorm:"not null" json:"price_general"`
 	PriceToko    float64        `gorm:"not null" json:"price_toko"`
 	BasePrice    float64        `gorm:"not null;default:0" json:"base_price"` // Ini yang akan di-update oleh Moving Average

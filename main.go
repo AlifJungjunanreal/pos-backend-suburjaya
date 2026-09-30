@@ -26,9 +26,12 @@ var jwtSecret = []byte("kunci_rahasia_skripsi_subur_jaya")
 
 // Konfigurasi WebSocket
 var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
+    ReadBufferSize:  1024,
+    WriteBufferSize: 1024,
+    // Tambahkan baris ini agar localhost bisa tersambung ke Railway:
+    CheckOrigin: func(r *http.Request) bool {
+        return true 
+    },
 }
 var clients = make(map[*websocket.Conn]bool)
 var broadcast = make(chan map[string]interface{})
@@ -438,17 +441,17 @@ func getProducts(c *gin.Context) {
 	}
 
 	var products []Product
-	if err := DB.Find(&products).Error; err != nil {
+	// Gunakan Preload untuk menarik semua stok dan cabang sekaligus di awal
+	if err := DB.Preload("BranchStocks").Preload("BranchStocks.Branch").Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	var response []ProductResponse
 	for _, p := range products {
-		var branchStocks []BranchStock
-		DB.Preload("Branch").Where("product_id = ?", p.ID).Find(&branchStocks)
-
-		var details []StockDetail
+    branchStocks := p.BranchStocks
+    
+    var details []StockDetail
 		total := 0
 
 		for _, bs := range branchStocks {
